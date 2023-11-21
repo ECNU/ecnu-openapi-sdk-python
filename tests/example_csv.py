@@ -13,9 +13,11 @@ def exampleSyncToCSV():
 
 	# 配置待同步的接口
     api = APIConfig(
-        APIPath = "/api/v1/organization/list",
+        APIPath = "/api/v1/sync/fakewithts",
         PageSize = 2000
     )
+
+    api.SetParam("ts", "0")
 
 	# 同步到 csv
 	# csv 模式下，所有字段都会转为 string
@@ -25,4 +27,4 @@ def exampleSyncToCSV():
     if err != None :
         print(err)
         return
-    print("CSV: 组织机构同步 ", rows, " 条数据\n")
+    print("CSV: 已同步 ", rows, " 条数据\n")

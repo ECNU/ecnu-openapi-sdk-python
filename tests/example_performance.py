@@ -70,8 +70,6 @@ def exampleSyncPerformanceByModel(api) :
     # 同步到Model对象
     fakerows= FakeRowsModel()
     fakerows, err = SyncToModel(fakerows, api)
-    process = psutil.Process()
-    memory_info = process.memory_info()
     if err != None :
         print(err)
         return

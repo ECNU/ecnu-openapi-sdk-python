@@ -3,16 +3,7 @@ from datetime import datetime
 from src.sample.sync import APIConfig, SyncToModel
 
 @dataclass
-class ZZJG:
-    departmentId: str = None
-    department: str = None
-    parentId: str = None
-    status: str = None
-    isSt: str = None
-    level: int = None
-
-@dataclass
-class Dnsrecord:
+class FakeRowsWithTS:
     created_at: datetime = None
     updated_at: datetime = None
     deleted_mark: int = None
@@ -33,36 +24,31 @@ def exampleSyncToModel():
 
 	# 配置待同步的接口
     api = APIConfig(
-        APIPath = "/api/v1/organization/list",
-        PageSize = 2000
-    )
-    # 同步到Model对象
-    zzjgs= ZZJG()
-
-    zzjgs, err = SyncToModel(zzjgs, api)
-
-    if err != None :
-        print(err)
-        return
-    print(zzjgs)
-    print("Model: 组织机构同步 ", len(zzjgs), " 条数据\n")
-
-    # 增量同步
-    api = APIConfig(
         APIPath = "/api/v1/sync/fakewithts",
         PageSize = 2000
     )
 
-    dnsrecords= Dnsrecord() #转换的Model类型
+    api.SetParam("ts", "0")
 
-    # 2023-09-28 00:00:00
-    ts = 1672761600
-    api.SetParam("ts", str(ts))
-    api.SetParam("full", "1")
+    # 同步到Model对象
+    fakerows= FakeRowsWithTS()
 
-    dnsrecords, err = SyncToModel(dnsrecords, api)
+    fakerows, err = SyncToModel(fakerows, api)
+
     if err != None :
         print(err)
         return
-    print("Model: DNS记录增量同步 ", len(dnsrecords), " 条数据\n")
+    print("Model: 已同步 ", len(fakerows), " 条数据\n")
+
+    # 增量同步
+    # 2023-09-28 00:00:00
+    ts = 1672675200
+    api.SetParam("ts", str(ts))
+    api.SetParam("full", "1")
+
+    fakerows, err = SyncToModel(fakerows, api)
+    if err != None :
+        print(err)
+        return
+    print("Model: 增量同步 ", len(fakerows), " 条数据\n")
     # print(dnsrecords)

@@ -19,7 +19,7 @@ if __name__ == "__main__":
         client_secret="",
     )
     initOauth2ClientCredentials(config)
-    print(callAPI('https://api.ecnu.edu.cn//api/v1/sync/fakewithts?pageSize=5&pageNum=1&ts=0', 'GET'))
+    print(callAPI('https://api.ecnu.edu.cn/api/v1/sync/fakewithts?ts=0&pageSize=1&pageNum=1', 'GET'))
     exampleSyncToCSV()
     exampleSyncToModel()
     exampleSyncToDB()
