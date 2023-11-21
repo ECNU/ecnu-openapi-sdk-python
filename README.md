@@ -27,7 +27,6 @@
 ## 相关资料
 - [oauth2.0](https://oauth.net/2/)
 - [sqlalchemy](https://www.sqlalchemy.org/)
--
 ## 支持的数据库
 理论上只要 sqlalchemy支持的数据库驱动都可以支持，以下是测试的情况
 
@@ -45,10 +44,10 @@
 
 详见以下示例代码，和示例代码中的相关注释
 
-- [CallAPI](example/example.py)
-- [SyncToCSV](example/example_csv.py)
-- [SyncToModel](example/example_model.py)
-- [SyncToDB](example/example_db.py)
+- [CallAPI](tests/example.py)
+- [SyncToCSV](tests/example_csv.py)
+- [SyncToModel](tests/example_model.py)
+- [SyncToDB](tests/example_db.py)
 
 
 ## 性能
@@ -108,7 +107,7 @@
 
 ### 测试结果
 - 数据库：本地mysql:5.7 (docker环境)
-- pageSize = 1000
+- pageSize = 2000
 - batchSize = 100
 
 | 数据量(`totalNum`) | Time Spent on `Direct CallAPI` | Time Spent on `Model Sync ` | Time Spent on `DB Sync ` |
