@@ -27,7 +27,7 @@ def exampleSyncToDB():
 
     # 配置待同步的接口
     api = APIConfig(
-        APIPath = "/api/v1/organization/list",
+        APIPath = "/api/v1/sync/fakewithts",
         PageSize = 2000,
         BatchSize = 100
     )
