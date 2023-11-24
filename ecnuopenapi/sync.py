@@ -4,10 +4,11 @@ import datetime
 from sqlalchemy import create_engine, Column, Integer, String, func
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.ext.declarative import declarative_base
-from src.sample.oauth_init import OAuth2Config
-from src.sample.model import HttpGet
-from src.sample.api import getRows, getAllRows
-from src.sample.parse import ParseRowsToCSV, UnmarshalRows
+from ecnuopenapi.oauth_init import OAuth2Config
+from ecnuopenapi.model import HttpGet
+from ecnuopenapi.api import getRows, getAllRows
+from ecnuopenapi.parse import ParseRowsToCSV, UnmarshalRows,map_dict_to_dataclass
+from dateutil.parser import parse
 
 MAX_PAGE_SIZE = 2000
 
@@ -42,16 +43,17 @@ class APIConfig:
     def SetParamsToApiPath(self):
         if '?' in self.APIPath:
             for (key, value) in self.params.items():
-                self.APIPath = self.APIPath + "&" + key + "=" + value
+                return self.APIPath + "&" + key + "=" + value
         else:
-            self.APIPath = self.APIPath + "?"
+            apiPath = self.APIPath + "?"
             for (key, value) in self.params.items():
-                self.APIPath = self.APIPath + key + "=" + str(value) + "&"
-            self.APIPath = self.APIPath[0:-1] # 去掉多余的那个&符号
+                apiPath = apiPath + key + "=" + str(value) + "&"
+            return apiPath[0:-1] # 去掉多余的那个&符号
 
 def SyncToCsv(csvFileName, api):
     api.SetDefault()
-    rows, err = getAllRows(api.APIPath, api.PageSize)
+    apiPath = api.SetParamsToApiPath()
+    rows, err = getAllRows(apiPath, api.PageSize)
     if err:
         return 0, err
     err = ParseRowsToCSV(rows, csvFileName)
@@ -61,9 +63,9 @@ def SyncToCsv(csvFileName, api):
 
 def SyncToModel(dataModel, api):
     api.SetDefault()
-    api.SetParamsToApiPath()
+    apiPath = api.SetParamsToApiPath()
     # getAllRows
-    rows, err = getAllRows(api.APIPath, api.PageSize)
+    rows, err = getAllRows(apiPath, api.PageSize)
     if err:
         return None, err
     data, err = UnmarshalRows(rows, dataModel)
@@ -73,7 +75,7 @@ def SyncToModel(dataModel, api):
 
 def SyncToDB(db, api, dataModel):
     api.SetDefault()
-    api.SetParamsToApiPath()
+    apiPath = api.SetParamsToApiPath()
 
     try:
         # 创建数据库表
@@ -94,20 +96,20 @@ def SyncToDB(db, api, dataModel):
     pageNum = 1
     totalRecordsNum = 0
     while True:
-        data, err = getRows(api.APIPath, pageNum, api.PageSize)
+        data, err = getRows(apiPath, pageNum, api.PageSize)
         if err != None:
             return 0, len(data.Rows), err
         if data.Rows == None or len(data.Rows) == 0:
             break
         # 往数据库中同步
         try:
-            for each in data.Rows:
-                new_object = dataModel(**each)
-                session.add(new_object)
+            for row in data.Rows:
+                data_object = map_dict_to_dataclass(row, dataModel)
+                session.add(dataModel(**data_object.__dict__))
                 # 批量插入数据
-                if len(session.new) % api.BatchSize == 0:
-                    session.flush()
-                    inserted_data_count += api.BatchSize
+            if len(session.new) % api.BatchSize == 0:
+                session.flush()
+                inserted_data_count += api.BatchSize
             # 刷入剩下的数据
             session.commit()
             # 没有抛出异常，则插入成功，插入条数则为列表长度
@@ -130,4 +132,8 @@ def GetLastUpdatedTS(db, api, dataModel):
 
     if not max_updated_at:
         return 0
+    print(type(max_updated_at))
+    print(max_updated_at)
+    if type(max_updated_at) == str:
+        return int(parse(max_updated_at).timestamp())
     return int(max_updated_at.timestamp())

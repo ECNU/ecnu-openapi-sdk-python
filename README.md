@@ -21,8 +21,10 @@
         - [x] 同步到模型
 
 ## 依赖
-- python 3.10.12
+- python 3.10 +
 - [requirements.txt](requirements.txt)
+
+
 
 ## 相关资料
 - [oauth2.0](https://oauth.net/2/)
@@ -32,19 +34,74 @@
 
 如果sqlalchemy无法直接支持，可以先同步到模型，然后自行处理数据入库的逻辑。
 
-| 数据库        | 驱动                     | 测试情况 |
-|------------|----------------------------| --- |
-| MySQL      | pymysql                    | 测试通过 |
-| SQLite     | null                       | 测试通过 |
-| PostgreSQL | psycopg2                   | 测试通过 |
-| SQL Server | pymssql                    | 测试通过 |
-| Oracle     | cx_oracle                  | 测试通过 |
+| 数据库        | 驱动                     | 测试情况 | upsert 支持 |
+|------------|----------------------------| --- | --- |
+| MySQL      | pymysql                    | 测试通过 | todo |
+| SQLite     | null                       | 测试通过 | todo |
+| PostgreSQL | psycopg2                   | 测试通过 | todo |
+| SQL Server | pymssql                    | 测试通过 | todo |
+| Oracle     | cx_oracle                  | 测试通过 | todo |
 
 ## 示例
 
+### 安装 sdk
+```bash
+$pip install ecnu-openapi-sdk-python
+```
+### 接口调用
+初始化 SDK 后直接调用接口即可，sdk 会自动接管 token 的有效期和续约管理。
+
+```python
+from ecnuopenapi.oauth_init import OAuth2Config, initOauth2ClientCredentials
+from ecnuopenapi.model import callAPI
+
+config = OAuth2Config(
+        client_id="client_id",
+        client_secret="client_secret",
+    )
+initOauth2ClientCredentials(config)
+print(callAPI('https://api.ecnu.edu.cn/api/v1/sync/fakewithts?ts=0&pageSize=1&pageNum=1', 'GET'))
+```
+
+### 数据同步
+首先初始化 SDK 
+然后只需要定义好 orm 映射，SDK 会接管接口调用，数据表创建，数据同步等所有工作。
+
+```python
+from sqlalchemy import create_engine, Column, Integer, String, DateTime
+from sqlalchemy.sql import func
+from sqlalchemy.ext.declarative import declarative_base
+from ecnuopenapi.sync import APIConfig, SyncToDB
+from ecnuopenapi.oauth_init import OAuth2Config, initOauth2ClientCredentials
+Base = declarative_base()
+
+# 创建一个模型类，用于映射数据库表 必须继承Base
+class FakeRowsWithTs(Base):
+    __tablename__ = 'fake_rows_with_ts'
+    id = Column(Integer, primary_key=True)
+    userId = Column(String(255))
+    name = Column(String(255))
+    created_at = Column(DateTime, default=func.now())
+    updated_at = Column(DateTime, onupdate=func.now())
+    deleted_mark = Column(Integer, default=0)
+
+sqlite_url = 'sqlite:///test.db'
+db = create_engine(sqlite_url) 
+
+api = APIConfig(
+        APIPath = "/api/v1/sync/fakewithts",
+        PageSize = 2000,
+        BatchSize = 100
+ )
+
+api.SetParam("ts", "0")
+
+print(SyncToDB(db, api, FakeRowsWithTs))
+```
+
 详见以下示例代码，和示例代码中的相关注释
 
-- [CallAPI](tests/example.py)
+- [Init & CallAPI](tests/example.py)
 - [SyncToCSV](tests/example_csv.py)
 - [SyncToModel](tests/example_model.py)
 - [SyncToDB](tests/example_db.py)
@@ -143,5 +200,5 @@
 
 该`sdk`提供全量与增量刷新数据到DB中，支持数据库`MySQL`（建议）、`Oracle`、`PostgrelSQL`、`SQLServer`
 
-由于Python的非`Web ORM`框架无法提供向`java`、`go`等语言的`ORM`框架的各种全面的接口，全量刷新时建议删除原本存在的表结构，增量同步时则不需要。配置如下：数据库、`api`、映射类，注意若接口返回的数据存在id，一般无需指定自增
+目前暂时不支持 `upsert`，全量刷新时建议删除原本存在的表结构，增量同步时则不需要。配置如下：数据库、`api`、映射类，注意若接口返回的数据存在id，一般无需指定自增
 

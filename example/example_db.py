@@ -1,13 +1,13 @@
 from sqlalchemy import create_engine, Column, Integer, String, DateTime, MetaData
 from sqlalchemy.sql import func
 from sqlalchemy.ext.declarative import declarative_base
-from src.sample.sync import APIConfig, SyncToDB, GetLastUpdatedTS
+from ecnuopenapi.sync import APIConfig, SyncToDB, GetLastUpdatedTS
 
 Base = declarative_base()
 
 # 创建一个模型类，用于映射数据库表 必须继承Base
 class FakeRowsWithTs(Base):
-    __tablename__ = 'dns_records'
+    __tablename__ = 'fake_rows_with_ts'
     id = Column(Integer, primary_key=True)
     userId = Column(String(255))
     name = Column(String(255))
@@ -18,12 +18,13 @@ class FakeRowsWithTs(Base):
 def exampleSyncToDB():
 
     # 初始化数据库连接，根据需要更改连接字符串
+    sqlite_url = 'sqlite:///test.db'
     mysql_url = 'mysql+pymysql://username:password@ip:port/dbname'
     pg_url = 'postgresql+psycopg2://username:password@ip:port/dbname'
     oracle_url = 'oracle+cx_oracle://username:password@ip:port/sidname'
     sqlserver_url = 'mssql+pymssql://username:password@ip:port/dbname'
 
-    db = create_engine(mysql_url)  # 这里使用MySQL作为示例
+    db = create_engine(sqlite_url)  # 这里使用sqlite作为示例
 
     # 配置待同步的接口
     api = APIConfig(
@@ -38,6 +39,7 @@ def exampleSyncToDB():
     # 因为python无法使用c/go的引用或者指针，所以返回结果多一个参数用来记录接口返回的数据数量
 
     # 删除某张表  建议全量同步每次都删除
+    # Todo: 支持 upsert
     FakeRowsWithTs.metadata.drop_all(db)
     
     rows, totalNum, err = SyncToDB(db, api, FakeRowsWithTs)

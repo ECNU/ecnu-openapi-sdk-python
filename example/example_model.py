@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from datetime import datetime
-from src.sample.sync import APIConfig, SyncToModel
+from ecnuopenapi.sync import APIConfig, SyncToModel
 
 @dataclass
 class FakeRowsWithTS:
@@ -39,16 +39,20 @@ def exampleSyncToModel():
         print(err)
         return
     print("Model: 已同步 ", len(fakerows), " 条数据\n")
+    for row in fakerows:
+        print(row)
+    
 
-    # 增量同步
-    # 2023-09-28 00:00:00
+    # 增量同步，返回 2023-01-03 00:00:00 之后的全部数据（含软删除部分）
     ts = 1672675200
     api.SetParam("ts", str(ts))
     api.SetParam("full", "1")
 
-    fakerows, err = SyncToModel(fakerows, api)
+    fakerows2 = FakeRowsWithTS()
+    fakerows2, err = SyncToModel(fakerows2, api)
     if err != None :
         print(err)
         return
-    print("Model: 增量同步 ", len(fakerows), " 条数据\n")
-    # print(dnsrecords)
+    print("Model: 增量同步 ", len(fakerows2), " 条数据\n")
+    for row in fakerows2:
+        print(row)

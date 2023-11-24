@@ -2,6 +2,8 @@ import os
 import csv
 from dataclasses import dataclass, field
 from typing import List
+import copy
+from datetime import datetime
 
 def ParseRowsToCSV(rows, filename):
     if len(rows) == 0 :
@@ -36,7 +38,7 @@ def ParseRowsToCSV(rows, filename):
 
 def map_dict_to_dataclass(item, data_class):
     # 创建一个数据类对象，初始值均为None
-    data_object = data_class
+    data_object = copy.deepcopy(data_class)
 
     # 获取数据类的字段名称
     fields = list(vars(data_class).keys())
@@ -44,7 +46,11 @@ def map_dict_to_dataclass(item, data_class):
     # 遍历字典的键值对，并映射到数据类的属性
     for field_name in fields:
         if field_name in item:
-            setattr(data_object, field_name, item[field_name])
+            field_value = item[field_name]
+            dt =parseSQLDateTime(field_value)
+            if dt is not None:
+                field_value = dt
+            setattr(data_object, field_name, field_value)
 
     return data_object
 
@@ -56,5 +62,10 @@ def UnmarshalRows(src, data_class):
             data_model.append(data_object)
     except Exception as e:
         return None, Exception(str(e))
-
     return data_model, None
+
+def parseSQLDateTime(value):
+    try:
+       return datetime.strptime(value,'%Y-%m-%d %H:%M:%S')
+    except Exception as e:
+        return None

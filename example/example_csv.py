@@ -1,4 +1,4 @@
-from src.sample.sync import APIConfig, SyncToCsv
+from ecnuopenapi.sync import APIConfig, SyncToCsv
 
 def exampleSyncToCSV():
     '''
@@ -18,7 +18,7 @@ def exampleSyncToCSV():
     )
 
     api.SetParam("ts", "0")
-
+    
 	# 同步到 csv
 	# csv 模式下，所有字段都会转为 string
     csvFile = "test.csv"

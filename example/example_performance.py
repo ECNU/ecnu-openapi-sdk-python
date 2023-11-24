@@ -1,8 +1,8 @@
 from sqlalchemy import create_engine, Column, Integer, String, DateTime, MetaData, Float, BigInteger
 from sqlalchemy.ext.declarative import declarative_base
-from src.sample.sync import APIConfig, SyncToDB, SyncToModel
+from ecnuopenapi.sync import APIConfig, SyncToDB, SyncToModel
 import datetime
-from src.sample.api import getRows
+from ecnuopenapi.api import getRows
 import psutil
 from dataclasses import dataclass
 import sqlite3

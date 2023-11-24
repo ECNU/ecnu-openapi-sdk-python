@@ -1,7 +1,5 @@
-import json
-import requests
-from src.sample.oauth_init import GetOpenAPIClient
-from src.sample.model import HttpGet
+from ecnuopenapi.oauth_init import GetOpenAPIClient
+from ecnuopenapi.model import HttpGet
 
 class DataResult:
     def __init__(self, PageSize=0, PageNum=0, Rows=[]):

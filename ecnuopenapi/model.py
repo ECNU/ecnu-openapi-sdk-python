@@ -1,6 +1,6 @@
 import json
 import requests
-from src.sample.oauth_init import GetOpenAPIClient
+from ecnuopenapi.oauth_init import GetOpenAPIClient
 
 class APIResult:
     def __init__(self, err_code, err_msg, request_id, data):
